@@ -120,10 +120,28 @@ client.on('message', message=> {
 
             server.queue.push(args[1]);
 
-            if(!message.guild.voiceConnection) message.member.voice.channel.join().then(function(connection){
+            if(!message.guild.voice.connection) message.member.voice.channel.join().then(function(connection){
                 play(connection, message);
             })
 
+        break;
+
+        case 'skip':
+            var server = servers[message.guild.id];
+            if(server.dispatcher) server.dispatcher.end();
+        break;
+
+        case 'stop':
+            var server = servers[message.guild.id];
+            if(message.guild.voice.connection){
+                for(var i = server.queue.length -1; i >=0; i--){
+                    server.queue.splice(i, 1);
+                }
+                server.dispatcher.end;
+                console.log('stopped the queue');
+            }
+
+            if(message.guild.connection) message.guild.voice.connection.disconnect();
         break;
     }
 
