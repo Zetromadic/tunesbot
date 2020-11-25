@@ -13,8 +13,6 @@ var version = '0.0.1';
 const fs = require('fs');
 var schedule = require('node-schedule');
 
-var servers = {};
-
 const ms = require('ms');
 var profanitites = require('profanities');
 
