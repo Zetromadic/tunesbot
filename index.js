@@ -7,8 +7,11 @@ const PREFIX = '-';
 
 const cheerio = require ('cheerio');
 const request = require('request');
+const ytdl = require('ytdl-core');
 
 var version = '0.0.1';
+
+var servers = {};
 
 const fs = require('fs');
 var schedule = require('node-schedule');
@@ -77,7 +80,50 @@ client.on('message', message=> {
             .setColor('0x00FFC7')
             .addField('-play', 'Followed by a song you would liked played while in a voice chat!')
 
-            message.guild.member(message.author).send(helpEmbed);
+            message.channel.send(helpEmbed);
+
+        break;
+
+        case 'play':
+            
+            function play(connection, message){
+                var server = servers[message.guild.id];
+
+                server.dispatcher = connection.playStream(ytdl(server.queue[0], {filter: "audioonly"}));
+
+                server.queue.shift();
+
+                server.dispatcher.on("end", function(){
+                    if(server.queue[0]){
+                        play(connection, message);
+                    }else{
+                        connection.disconnect();
+                    }
+                })
+            }
+        
+            if(!args[1])
+            {
+                message.channel.send("You need to provide a link to a song!");
+            }
+
+            if(!message.member.voiceChannel)
+            {
+                message.channel.send("You must be in a channel to play a song!");
+                return;
+            }
+
+            if(!servers[message.guild.id]) servers[message.guild.id] = {
+                queue: []
+            }
+
+            var server = servers[message.guild.id];
+
+            server.queue.push(args[1]);
+
+            if(!message.guild.voiceConnection) message.member.voiceChannel.join().then(function(connection){
+                play(connection, message);
+            })
 
         break;
     }
