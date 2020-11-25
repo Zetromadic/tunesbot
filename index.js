@@ -79,6 +79,9 @@ client.on('message', message=> {
             .setTitle('Help')
             .setColor('0x00FFC7')
             .addField('-play', 'Followed by a song you would liked played while in a voice chat!')
+            .addField('-skip', 'This will skip the song that is playing!')
+            .addField('-stop', 'This will stop the queue of songs!')
+            .addField('-info', 'Followed by "Ping", "Uptime", or "Version"')
 
             message.channel.send(helpEmbed);
 
@@ -86,6 +89,8 @@ client.on('message', message=> {
 
         case 'play':
             
+            dispatcher.setVolume(1);
+
             function play(connection, message){
                 var server = servers[message.guild.id];
 
