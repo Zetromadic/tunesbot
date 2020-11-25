@@ -107,9 +107,8 @@ client.on('message', message=> {
                 message.channel.send("You need to provide a link to a song!");
             }
 
-            if(!message.member.voiceChannel)
-            {
-                message.channel.send("You must be in a channel to play a song!");
+            if(!message.member.voice.channel){
+                message.channel.send("You must be in a voice channel to play a song!");
                 return;
             }
 
