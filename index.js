@@ -88,13 +88,11 @@ client.on('message', message=> {
         break;
 
         case 'play':
-            
-            dispatcher.setVolume(1);
 
             function play(connection, message){
                 var server = servers[message.guild.id];
 
-                server.dispatcher = connection.play(ytdl(server.queue[0], {filter: "audioonly"}));
+                server.dispatcher = connection.playStream(ytdl(server.queue[0], {filter: "audioonly"}));
 
                 server.queue.shift();
 
