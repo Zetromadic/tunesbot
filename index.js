@@ -5,13 +5,11 @@ const token = process.env.token;
 
 const PREFIX = '-';
 
-const cheerio = require ('cheerio');
-const request = require('request');
-const ytdl = require('ytdl-core');
+const { Player } = require("discord-player");
+const Player = new Player(client);
+client.player = player;
 
 var version = '0.0.3';
-
-var servers = {};
 
 const fs = require('fs');
 var schedule = require('node-schedule');
