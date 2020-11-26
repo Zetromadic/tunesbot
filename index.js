@@ -1,31 +1,29 @@
 const Discord = require("discord.js")
-const bot = new Discord.Client();
+const Client = new Discord.Client();
+
+const token = process.env.token;
 
 const { Player } = require("discord-player");
-const player = new Player(bot);
-bot.player = player;
+const player = new Player(client);
+client.player = player;
 
-bot.on("ready", () => {
-    console.log("TunesBot is ONLINE!")
-})
-
-bot.on("message", message => {
-    const prefix = '-';
-
-    const args = message.content.slice(prefix.length).trim().split(/ +/g);
+client.on("ready", () => {
+    console.log("I'm ready !");
+});
+ 
+client.on("message", async (message) => {
+ 
+    const args = message.content.slice(settings.prefix.length).trim().split(/ +/g);
     const command = args.shift().toLowerCase();
-
-    if (command === 'play')
-    {
-        let track = await bot.player.play(message.member.voice.channel, args[0], message.member.user.tag);
-        message.channel.send(`Playing ${track.name}! - Requested by ${track.requestedBy}`);
+ 
+    // !play Despacito
+    // will play "Despacito" in the member voice channel
+ 
+    if(command === "play"){
+        client.player.play(message, args[0], message.member.user);
+        // as we registered the event above, no need to send a success message here
     }
+ 
+});
 
-    if(command === 'stop')
-    {
-        let track = await bot.player.stop(message.guild.id);
-        message.channel.send("STOPPED");
-    }
-})
-
-bot.login(process.env.token);
+client.login(token);
