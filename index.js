@@ -9,7 +9,7 @@ const cheerio = require ('cheerio');
 const request = require('request');
 const ytdl = require('ytdl-core');
 
-var version = '0.0.1';
+var version = '0.0.3';
 
 var servers = {};
 
@@ -89,62 +89,18 @@ client.on('message', message=> {
 
         case 'play':
 
-            function play(connection, message){
-                var server = servers[message.guild.id];
-
-                server.dispatcher = connection.play(ytdl(server.queue[0], {filter: "audioonly"}));
-
-                server.queue.shift();
-
-                server.dispatcher.on("finish", function(){
-                    if(server.queue[0]){
-                        play(connection, message);
-                    }else{
-                        connection.disconnect();
-                    }
-                })
-            }
-        
-            if(!args[1])
-            {
-                message.channel.send("You need to provide a link to a song!");
-            }
-
-            if(!message.member.voice.channel){
-                message.channel.send("You must be in a voice channel to play a song!");
-                return;
-            }
-
-            if(!servers[message.guild.id]) servers[message.guild.id] = {
-                queue: []
-            }
-
-            var server = servers[message.guild.id];
-
-            server.queue.push(args[1]);
-
-            if(!message.guild.voiceConnection) message.member.voice.channel.join().then(function(connection){
-                play(connection, message);
-            })
+            let track = await client.player.play(message.member.voice.channel, args[0], message.member.user.tag);
+            message.channel.send(`Playing ${track.name}! - Requested by ${track.requestedBy}`);
 
         break;
 
         case 'skip':
-            var server = servers[message.guild.id];
-            if(server.dispatcher) server.dispatcher.end();
+            
         break;
 
         case 'stop':
-            var server = servers[message.guild.id];
-            if(message.guild.voice.connection){
-                for(var i = server.queue.length -1; i >=0; i--){
-                    server.queue.splice(i, 1);
-                }
-                server.dispatcher.end;
-                console.log('stopped the queue');
-            }
-
-            if(message.guild.connection) message.guild.voice.connection.disconnect();
+           let track = await client.player.stop(message.guild.id);
+           message.channel.send(`STOPPED`);
         break;
     }
 
