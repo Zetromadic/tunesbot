@@ -5,7 +5,7 @@ const { Player } = require("discord-player");
 const player = new Player(bot);
 bot.player = player;
 
-bot.on("ready", bot => {
+bot.on("ready", () => {
     console.log("TunesBot is ONLINE!")
 })
 
@@ -28,4 +28,4 @@ bot.on("message", message => {
     }
 })
 
-bot.login(process.env.token)
+bot.login(process.env.token);
