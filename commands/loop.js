@@ -1,27 +1,25 @@
-/* eslint-disable no-undef */
+const { MessageEmbed } = require("discord.js");
+const sendError = require("../util/error");
+
 module.exports = {
-	name : "loop",
-	description: "loop current queue!",
-	aliases : ["lp"],
-	ussage : null,
-	hidden : false,
-	canDisabled : true,
-	admin : false,
-	owner : false,
-	nsfw : false,
-	async execute(client,message){
-		var msg = message;
-		var serverQueue = client.queue.get(msg.guild.id);
-		if (!msg.member.voice.channel ) return msg.channel.send("I'm sorry but you need to be in a voice channel to play a music!");
-		var guildvoice = client.voice.connections.get(message.guild.id);
-		if(!guildvoice) return message.reply("please letme join to room!")
-		if (serverQueue) {
+  info: {
+    name: "loop",
+    description: "Toggle music loop",
+    usage: "loop",
+    aliases: ["l"],
+  },
+
+  run: async function (client, message, args) {
+    const serverQueue = message.client.queue.get(message.guild.id);
+       if (serverQueue) {
             serverQueue.loop = !serverQueue.loop;
-            return msg.channel.send(`:repeat: **|** Loop ${serverQueue.loop === true ? "enabled" : "disabled"}!`);
-        }
-        return msg.channel.send("There is nothing playing.");
-	}
-}
-
-
-
+            return message.channel.send({
+                embed: {
+                    color: "GREEN",
+                    description: `🔁  **|**  Loop is **\`${serverQueue.loop === true ? "enabled" : "disabled"}\`**`
+                }
+            });
+        };
+    return sendError("There is nothing playing in this server.", message.channel);
+  },
+};

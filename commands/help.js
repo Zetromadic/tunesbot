@@ -1,58 +1,43 @@
-const Discord = require('discord.js');
-const fs = require("fs");
-const prefix = require('../config.json').prefix;
-const owner = require('../config.json').ownerID;
+const { MessageEmbed } = require('discord.js')
 
-
-//Modue Export
 module.exports = {
-  name: "help",
-  description: "Display Help commands!",
-  aliases: ["h"],
-	ussage: "< Command >",
-	canDisabled : false,
-  hidden: false,
-  admin:false,
-  owner:false,
-	nsfw : false,
-  async execute(client,message,args) {
-      const utils = client.util;
-			const colors = client.colors;
-      var footer = `copyright ${client.users.cache.get(owner).tag}`;
+    info: {
+        name: "help",
+        description: "To show all commands",
+        usage: "[command]",
+        aliases: ["commands", "help me", "pls help"]
+    },
 
-      if(args[0]){
-        var cmd = client.commands.get(args[0]);
-        if(!cmd) return message.reply("cant find command like this!").then(msg => msg.delete(5000));
-        var cm = [];
-        cm.push(`Description : \`\`${cmd.description}\`\``)
-        if(cmd.aliases) cm.push(`Aliases : \`\`${cmd.aliases}\`\``);
-        if(cmd.ussage) cm.push(`usage : \`\`${prefix+cmd.name+" "+cmd.ussage}\`\``);
+    run: async function(client, message, args){
+        var allcmds = "";
 
-        var embed = new Discord.MessageEmbed()
-          .setTitle(`**${cmd.name}** help command`)
-          .setDescription(`${cm.join("\n")}\n\n\`\`[ ] refer to required args\`\`\n\`\`< > refer to optional args\`\``)
-          .setColor(colors.accent)
-          .setFooter(footer);
+        client.commands.forEach(cmd => {
+            let cmdinfo = cmd.info
+            allcmds+="``"+client.config.prefix+cmdinfo.name+" "+cmdinfo.usage+"`` ~ "+cmdinfo.description+"\n"
+        })
 
-          return message.channel.send(embed);
+        let embed = new MessageEmbed()
+        .setAuthor("Commands of "+client.user.username, "https://raw.githubusercontent.com/SudhanPlayz/Discord-MusicBot/master/assets/Music.gif")
+        .setColor("BLUE")
+        .setDescription(allcmds)
+        .setFooter(`To get info of each command you can do ${client.config.prefix}help [command] | Hander by ItzCutePikachu#2006`)
 
-      } else {
-        var cmds = fs.readdirSync("./commands").filter(file => file.endsWith('.js')),
-            cm = cmds.map(e=>{
-              var cmd = require(`../commands/${e}`);
-              if(!cmd.hidden){
-                return `\`\`${utils.tn(cmd.name,2)} :\`\` ${cmd.description}`
-              }
-              return null;
-            });
-
-        var embed = new Discord.MessageEmbed()
-          .setTitle(`${client.user.username} Help commands`)
-          .setDescription(`my prefix is \`${prefix}\`\n`+cm.filter(e=>{return e !== null}).join("\n"))
-          .setColor(colors.accent)
-          .setFooter(footer);
-
-          return message.channel.send(embed);
-      }
-  }
+        if(!args[0])return message.channel.send(embed)
+        else {
+            let cmd = args[0]
+            let command = client.commands.get(cmd)
+            if(!command)command = client.commands.find(x => x.info.aliases.includes(cmd))
+            if(!command)return message.channel.send("Unknown Command")
+            let commandinfo = new MessageEmbed()
+            .setTitle("Command: "+command.info.name+" info")
+            .setColor("YELLOW")
+            .setDescription(`
+Name: ${command.info.name}
+Description: ${command.info.description}
+Usage: \`\`${client.config.prefix}${command.info.name} ${command.info.usage}\`\`
+Aliases: ${command.info.aliases.join(", ")}
+`)
+            message.channel.send(commandinfo)
+        }
+    }
 }

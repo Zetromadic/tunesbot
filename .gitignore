@@ -1,8 +1,7 @@
-#self file
-#.gitignore
+# Packages
+node_modules/
+package-lock.json
+yarn.lock
 
-#exclude node_module
-node_modules
-
-#exclude dev directory
-#bin
+# Envronmental Storage
+.env

@@ -1,32 +1,23 @@
-/* eslint-disable no-undef */
+const { MessageEmbed } = require("discord.js");
+const sendError = require("../util/error");
+
 module.exports = {
-	name : "remove",
-	description: "remove specific queue!",
-	aliases : ["rm"],
-	ussage : "[ list-index ]",
-	hidden : false,
-	canDisabled : true,
-	admin : false,
-	owner : false,
-	nsfw : false,
-	async execute(client,message,args){
-        if(!args[0]) return message.reply("please provide the index to remove!")
-        var num = parseInt(args[0]);
-		var msg = message;
-		var serverQueue = client.queue.get(msg.guild.id);
-		if (!msg.member.voice.channel ) return msg.channel.send("I'm sorry but you need to be in a voice channel to play a music!");
-		var guildvoice = client.voice.connections.get(message.guild.id);
-		if(!guildvoice) return message.reply("please letme join to room!")
-		if (serverQueue) {
-            if(!serverQueue.songs) return message.reply("No songs on queue!")
-            if(num <= 0 || num > serverQueue.songs.length) return msg.reply("Out of range!");
-            var rmm = serverQueue.songs[num];
-            serverQueue.songs.splice(num,1);
-            return msg.channel.send(`❌ **|** Success remove \`${rmm.title}\`!`);
-        }
-        return msg.channel.send("There is no queue rn");
-	}
-}
+  info: {
+    name: "remove",
+    description: "Remove song from the queue",
+    usage: "rm <number>",
+    aliases: ["rm"],
+  },
 
+  run: async function (client, message, args) {
+   const queue = message.client.queue.get(message.guild.id);
+    if (!queue) return sendError("There is no queue.",message.channel).catch(console.error);
+    if (!args.length) return sendError(`Usage: ${client.config.prefix}\`remove <Queue Number>\``);
+    if (isNaN(args[0])) return sendError(`Usage: ${client.config.prefix}\`remove <Queue Number>\``);
 
+    const song = queue.songs.splice(args[0] - 1, 1);
+    sendError(`❌ **|** Removed: **\`${song[0].title}\`** from the queue.`,queue.textChannel).catch(console.error);;
+                   message.react("✅")
 
+  },
+};
