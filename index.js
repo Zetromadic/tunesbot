@@ -77,7 +77,7 @@ client.on('message', message=> {
 
             let helpEmbed = new Discord.MessageEmbed()
             .setTitle('Help')
-            .setColor('0x00FFC7')
+            .setColor('0xb99dfa')
             .addField('-play', 'Followed by a song you would liked played while in a voice chat!')
             .addField('-skip', 'This will skip the song that is playing!')
             .addField('-stop', 'This will stop the queue of songs!')
