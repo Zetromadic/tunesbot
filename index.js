@@ -131,6 +131,7 @@ client.on('message', message=> {
 
         case 'skip':
             var server = servers[message.guild.id];
+            message.channel.send("Song skipped!");
             if(server.dispatcher) server.dispatcher.end();
         break;
 
@@ -142,6 +143,7 @@ client.on('message', message=> {
                 }
                 server.dispatcher.end;
                 console.log('stopped the queue');
+                message.channel.send("Stopped the queue!");
             }
 
             if(message.guild.connection) message.guild.voice.connection.disconnect();
