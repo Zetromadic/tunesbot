@@ -8,6 +8,7 @@ const PREFIX = '-';
 const cheerio = require ('cheerio');
 const request = require('request');
 const ytdl = require('ytdl-core');
+const ytSearch = require('yt-search');
 
 var version = '0.0.1';
 
@@ -79,7 +80,6 @@ client.on('message', message=> {
             .setTitle('Help')
             .setColor('0xb99dfa')
             .addField('-play', 'Followed by a song you would liked played while in a voice chat!')
-            .addField('-skip', 'This will skip the song that is playing!')
             .addField('-stop', 'This will stop the queue of songs!')
             .addField('-info', 'Followed by "Ping", "Uptime", or "Version"')
 
@@ -89,64 +89,75 @@ client.on('message', message=> {
 
         case 'play':
 
-            function play(connection, message){
-                var server = servers[message.guild.id];
+            const voiceChannel = message.member.voice.channel;
 
-                server.dispatcher = connection.play(ytdl(server.queue[0], {filter: "audioonly"}));
+            if(!voiceChannel) return message.channel.send('You must be in a voice channel to use this command!');
+            const permissions = voiceChannel.permissionsFor(message.client.user);
+            if(!permissions.has('CONNECT')) return message.channel.send('You do not have the correct permissions to use this command!');
+            if(!permissions.has('SPEAK')) return message.channel.send('You do not have the correct permissions to use this command!');
+            if(!args.length) return message.channel.send('You need to send the second argument!');
 
-                server.queue.shift();
+            const validURL = (str) =>{
+                var regex = /(http|https):\/\/(\w+:{0,1}\w*)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%!\-\/]))?/;
+                if(!regex.test(str)){
+                    return false;
+                } else {
+                    return true;
+                }
+            }
 
-                server.dispatcher.on("finish", function(){
-                    if(server.queue[0]){
-                        play(connection, message);
-                    }else{
-                        connection.disconnect();
-                    }
+            if(validURL(args[0])){
+ 
+                const  connection = await voiceChannel.join();
+                const stream  = ytdl(args[0], {filter: 'audioonly'});
+     
+                connection.play(stream, {seek: 0, volume: 1})
+                .on('finish', () =>{
+                    voiceChannel.leave();
+                    message.channel.send('leaving channel');
+                });
+     
+                await message.reply(`:thumbsup: Now Playing ***Your Link!***`)
+     
+                return
+            }
+            
+            const connection = await voiceChannel.join();
+
+            const videoFinder = async(query) => {
+                const videoResult = await ytSearch(query);
+
+                return(videoResult.videos.length > 1) ? videoResult.videos[0] : null;
+            }
+            
+            const video = await videoFinder(args.join(''));
+
+            if(video){
+                const stream = ytdl(video.url, {filter: 'audioonly'});
+                connection.play(stream, {seek: 0, volume: 1})
+                .on('finish', () =>{
+                    voiceChannel.leave();
                 })
+
+                await message.reply(`:thumbsup: Now Playing ***${video.title}***`)
             }
-        
-            if(!args[1])
-            {
-                message.channel.send("You need to provide a link to a song!");
+            else{
+                message.channel.send('No video results found');
             }
-
-            if(!message.member.voice.channel){
-                message.channel.send("You must be in a voice channel to play a song!");
-                return;
-            }
-
-            if(!servers[message.guild.id]) servers[message.guild.id] = {
-                queue: []
-            }
-
-            var server = servers[message.guild.id];
-
-            server.queue.push(args[1]);
-
-            if(!message.guild.voiceConnection) message.member.voice.channel.join().then(function(connection){
-                play(connection, message);
-            })
+            
 
         break;
 
         case 'skip':
-            var server = servers[message.guild.id];
-            message.channel.send("Song skipped!");
-            if(server.dispatcher) server.dispatcher.end();
+            
         break;
 
         case 'stop':
-            var server = servers[message.guild.id];
-            if(message.guild.voice.connection){
-                for(var i = server.queue.length -1; i >=0; i--){
-                    server.queue.splice(i, 1);
-                }
-                server.dispatcher.end;
-                console.log('stopped the queue');
-                message.channel.send("Stopped the queue!");
-            }
+            const voiceChannel = message.member.voice.channel;
 
-            if(message.guild.connection) message.guild.voice.connection.disconnect();
+            if(!voiceChannel) return message.channel.send('You must be in a voice channel to use this command!');
+            await voiceChannel.leave();
+            await message.channel.send('Leaving channel :smiling_face_with_tear:');
         break;
     }
 
